@@ -5,48 +5,45 @@
 #include <stack>
 #include <map>
 
-#define EOS '$'
 #define TOS ss.top()
 
-enum nonterminal_t { S = 'S', V = 'V' };
+enum state : char { Q0, Q1 };
+enum symbol : char { EOS = '$', U = 'U', D = 'D', L = 'L', R = 'R', F = 'F', B = 'B', M = 'M', x = 'x', y = 'y' };
+enum dir : char { BLANK = NULL, CCW = '\'', ROT = '2' };
 
-struct token_t {
-    enum symbol_t { U = 'U', D = 'D', L = 'L', R = 'R', F = 'F', B = 'B', M = 'M', x = 'x', y = 'y' } symbol;
-    enum dir_t { BLANK = 0, CCW = '\'', ROT = '2' } dir;
-};
-
-std::map<char, char> neg =
-    {{ 'U', 'D' },
-     { 'D', 'U' },
-     { 'L', 'R' },
-     { 'R', 'L' },
-     { 'F', 'B' },
-     { 'B', 'F' }};
+std::map<symbol, symbol> neg =
+    {{ U, D },
+     { D, U },
+     { L, R },
+     { R, L },
+     { F, B },
+     { B, F }};
 
 std::stack<char> ss;
-char* bufp;
+char *bufp;
 char save;
 bool ON = false;
 
-char* append(const char* const w, const char& c) {
-    size_t len = strlen(w);
-    char* r = new char[len + 3];
+char* append(const char* const out, const char& c) {
+    const size_t len = strlen(out);
+    char* const in = new char[len + 3];
 
-    strcpy(r, w);
+    strcpy(in, out);
 
-    r[len] = ' ';
-    r[len+1] = c;
-    r[len+2] = '\0';
+    in[len] = ' ';
+    in[len+1] = c;
+    in[len+2] = '\0';
 
-    return r;
+    return in;
 }
 
-bool isTerminal(const char& c) {
-    const char* pattern = "$/U/D/L/R/F/B/M/x/y/";
-    const size_t len = strlen(pattern);
+bool isterm(const char& c) {
+    const char *pattern = "$UDLRFBMxy", *ptr = pattern;
+    size_t len = strlen(pattern);
 
-    for (size_t pos = 0; pos < len; pos += 2)
-        if (c == *(pattern + pos)) return true;
+    while (len-- > 0) {
+        if (*ptr++ == c) return true;
+    }
     return false;
 }
 
@@ -55,15 +52,15 @@ void error(const char* status) {
     exit(1);
 }
 
-void parser(char* input) {
+void parser(const char* const input) {
     bufp = append(input, EOS);
     bufp = strtok(bufp, " ");
 
-    ss.push('$');
-    ss.push('S');
+    ss.push(EOS);
+    ss.push(Q0);
 
     while (!ss.empty() && bufp) {
-        if (isTerminal(TOS)) {
+        if (isterm(TOS)) {
             if (TOS == bufp[0]) {
                 ss.pop();
                 bufp = strtok(NULL, " ");
@@ -72,21 +69,20 @@ void parser(char* input) {
         }
         else {
             switch (TOS) {
-                case 'S' : {
+                case Q0 : {
                     if (ON && bufp[0] == save) error("no layer change");
 
                     ON = false;
                     save = bufp[0];
 
                     ss.pop();
-                    ss.push('S');
-                    ss.push('V');
+                    ss.push(Q0);
+                    ss.push(Q1);
                     ss.push(bufp[0]);
-
                     break;
                 }
-                case 'V' : {
-                    if (bufp[0] == neg[save]) {
+                case Q1 : {
+                    if (bufp[0] == neg[(symbol)save]) {
                         ON = true;
                         ss.pop();
                         ss.push(bufp[0]);
@@ -96,7 +92,6 @@ void parser(char* input) {
                         ss.push(bufp[0]);
                     }
                     else error("duplicate token");
-
                     break;
                 }
                 default : error("unexpected variable");
@@ -104,7 +99,7 @@ void parser(char* input) {
         }
     }
 
-    printf("ACCEPTED\n");
+    printf("ACCEPTED -> %s\n", input);
 }
 
 int main(int argc, char** argv) {
