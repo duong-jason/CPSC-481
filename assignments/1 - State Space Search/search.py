@@ -7,7 +7,7 @@
 #
 # Assignment #1
 #
-"""2x2 tile puzzle implementation with DFS and BFS"""
+"""2x2 and 3x3 tile puzzle implementation with DFS and BFS"""
 
 BLANK = 0
 
@@ -39,7 +39,8 @@ def dfs(state, marker):
             top[marker], top[move] = top[move], top[marker]
 
             if top not in CLOSED:
-                PATH["move"].append(DIR[(marker, move)])
+                # PATH["move"].append(DIR[(marker, move)])
+                PATH["move"].append(move)
                 return dfs(top, move)
 
     return None
@@ -59,7 +60,8 @@ def bfs(state):
             if state not in CLOSED:
                 queue.append(state)
                 symbol.append(move)
-                PATH["move"].append(DIR[(blank, move)])
+                # PATH["move"].append(DIR[(blank, move)])
+                PATH["move"].append(move)
                 CLOSED.append(state)
 
         PATH["route"].append(queue[0])
@@ -72,11 +74,11 @@ def bfs(state):
 
 
 if __name__ == "__main__":
+    # 2x2 Puzzle
+
     dfs(START.copy(), BLANK)
-
-
-    print('Moves:', PATH['move'])
-    for depth, node in enumerate(PATH['route']):
+    print("Moves:", PATH["move"])
+    for depth, node in enumerate(PATH["route"]):
         print("Depth #", depth, node)
 
     CLOSED = []
@@ -84,7 +86,41 @@ if __name__ == "__main__":
 
     bfs(START.copy())
 
+    print("\nMoves:", PATH["move"])
+    for depth, node in enumerate(PATH["route"]):
+        print("Depth #", depth, node)
+
+    # 3x3 Puzzle
+
+    CLOSED = []
+    PATH = {"route": [], "move": []}
+
+    START, FINAL = [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]
+
+    ACTION = [
+        [1, 3],
+        [0, 2, 4],
+        [1, 5],
+        [0, 4, 6],
+        [1, 3, 5, 7],
+        [2, 4, 8],
+        [3, 7],
+        [4, 6, 8],
+        [5, 7],
+    ]
+
+    dfs(START.copy(), BLANK)
+    print("\nMoves:", PATH["move"])
+    for depth, node in enumerate(PATH["route"]):
+        print("Depth #", depth, node)
+
+    CLOSED = []
+    PATH = {"route": [], "move": []}
+
+    """
+    bfs(START.copy())
+
     print('\nMoves:', PATH['move'])
     for depth, node in enumerate(PATH['route']):
         print("Depth #", depth, node)
-
+    """
