@@ -16,12 +16,9 @@ action = [[1, 2],
           [3, 0],
           [2, 1]]
 
-path, visited = [], []
+path = []
+visited = []
 
-def display(state):
-    print(state[0], state[1])
-    print(state[2], state[3])
-    print("\n")
 
 def closed(state):
     for node in visited:
@@ -29,7 +26,8 @@ def closed(state):
             return True
     return False
 
-def dfs(state, marker, depth):
+
+def dfs(state, marker):
     visited.append(state.copy())
     path.append(state.copy())
 
@@ -40,80 +38,47 @@ def dfs(state, marker, depth):
             state[marker], state[move] = state[move], state[marker]
 
             if not closed(state):
-                return dfs(state, move, depth+1)
+                return dfs(state, move)
                 path.pop()
 
             state[marker], state[move] = state[move], state[marker]
 
 
-def bfs(state, depth):
+def bfs(state):
     q, a = [state.copy()], [marker]
     visited.append(state.copy())
 
-    """
-        0 3
-        2 1
-
-        3 0
-        2 1
-
-        2 3
-        0 1
-
-        3 1
-        2 0
-
-        2 3
-        1 0
-
-        3 1
-        0 2
-
-        2 0
-        1 3
-
-        0 1
-        3 2
-
-        0 2
-        1 3
-
-        1 0
-        3 2
-
-        1 2
-        0 3
-
-        1 2
-        3 0
-    """
-
-    while q and q[0] != final:
-        print(q)
-        print('Depth #', depth)
-        depth += 1
-
+    while True:
         for move in action[a[0]]:
-            q[0][a[0]], q[0][move] = q[0][move], q[0][a[0]]
+            state, blank = q[0].copy(), a[0]
 
-            if not closed(q[0]):
-                visited.append(q[0].copy())
-                q.append(q[0].copy())
+            state[blank], state[move] = state[move], state[blank]
+
+            if not closed(state):
+                visited.append(state)
+                q.append(state)
                 a.append(move)
 
-            q[0][a[0]], q[0][move] = q[0][move], q[0][a[0]]
-            
-        display(q[0])
+        path.append(q[0])
+
+        if q[0] == final:
+            break
+
         q.pop(0)
         a.pop(0)
 
 
 if __name__ == "__main__":
-    print('DFS\n')
+    dfs(start.copy(), marker)
+    
+    for d in range(len(path)):
+        print('Depth #', d, path[d])
 
-    path = dfs(start.copy(), marker, 0)
-    for node in path:
-        display(node)
+    visited = []
+    path = []
+    print("\n")
 
-    print('BFS\n')
-    bfs(start.copy(), 0)
+    bfs(start.copy())
+
+    for d in range(len(path)):
+        print('Depth #', d, path[d])
