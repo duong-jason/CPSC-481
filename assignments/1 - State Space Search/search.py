@@ -7,78 +7,77 @@
 #
 # Assignment #1
 #
+"""2x2 and 3x3 tile puzzle implementation with DFS and BFS"""
 
-marker = 0
-start, final = [0, 3, 2, 1], [1, 2, 3, 0]
+MARKER = 0
+START, FINAL = [0, 3, 2, 1], [1, 2, 3, 0]
 
-action = [[1, 2],
-          [0, 3],
-          [3, 0],
-          [2, 1]]
+ACTION = [[1, 2], [0, 3], [3, 0], [2, 1]]
 
-path = []
-visited = []
+PATH = []
+VISITED = []
 
 
 def closed(state):
-    for node in visited:
-        if node == state:
+    """returns true if state has already been visited"""
+    for item in VISITED:
+        if item == state:
             return True
     return False
 
 
 def dfs(state, marker):
-    visited.append(state.copy())
-    path.append(state.copy())
+    """depth-first search implementation"""
+    VISITED.append(state.copy())
+    PATH.append(state.copy())
 
-    if state == final:
-        return path 
-    else:
-        for move in action[marker]:
-            state[marker], state[move] = state[move], state[marker]
+    if state != FINAL:
+        for move in ACTION[marker]:
+            curr = state.copy()
+            curr[marker], curr[move] = curr[move], curr[marker]
 
-            if not closed(state):
-                return dfs(state, move)
-                path.pop()
+            if not closed(curr):
+                return dfs(curr, move)
 
-            state[marker], state[move] = state[move], state[marker]
+    return PATH
 
 
 def bfs(state):
-    q, a = [state.copy()], [marker]
-    visited.append(state.copy())
+    """breadth-first search implementation"""
+    queue, symbol = [state.copy()], [MARKER]
+    VISITED.append(state.copy())
 
     while True:
-        for move in action[a[0]]:
-            state, blank = q[0].copy(), a[0]
+        for move in ACTION[symbol[0]]:
+            state, blank = queue[0].copy(), symbol[0]
 
             state[blank], state[move] = state[move], state[blank]
 
             if not closed(state):
-                visited.append(state)
-                q.append(state)
-                a.append(move)
+                VISITED.append(state)
+                queue.append(state)
+                symbol.append(move)
 
-        path.append(q[0])
+        PATH.append(queue[0])
 
-        if q[0] == final:
+        if queue[0] == FINAL:
             break
 
-        q.pop(0)
-        a.pop(0)
+        queue.pop(0)
+        symbol.pop(0)
 
 
 if __name__ == "__main__":
-    dfs(start.copy(), marker)
-    
-    for d in range(len(path)):
-        print('Depth #', d, path[d])
+    dfs(START.copy(), MARKER)
 
-    visited = []
-    path = []
+    for depth, node in enumerate(PATH):
+        print("Depth #", depth, node)
+
+    VISITED = []
+    PATH = []
     print("\n")
 
-    bfs(start.copy())
+    bfs(START.copy())
 
-    for d in range(len(path)):
-        print('Depth #', d, path[d])
+    for depth, node in enumerate(PATH):
+        print("Depth #", depth, node)
