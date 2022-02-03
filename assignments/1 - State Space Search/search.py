@@ -12,6 +12,7 @@
 BLANK = 0
 
 START, FINAL = [0, 3, 2, 1], [1, 2, 3, 0]
+
 ACTION = [(1, 2), (0, 3), (3, 0), (2, 1)]
 DIR = {
     (0, 1): "R",
@@ -28,22 +29,22 @@ CLOSED = []
 PATH = {"route": [], "move": []}
 
 
-def dfs(state, marker):
+def dfs(state, marker, path):
     """depth-first search implementation"""
     CLOSED.append(state.copy())
     PATH["route"].append(state.copy())
 
-    if state != FINAL:
-        for move in ACTION[marker]:
-            top = state.copy()
-            top[marker], top[move] = top[move], top[marker]
+    if state == FINAL:
+        return path
 
-            if top not in CLOSED:
-                # PATH["move"].append(DIR[(marker, move)])
-                PATH["move"].append(move)
-                return dfs(top, move)
+    for move in ACTION[marker]:
+        node = state.copy()
+        node[marker], node[move] = node[move], node[marker]
 
-    return None
+        if node not in CLOSED:
+            # PATH['move'].append(DIR[(marker, move)])
+            # PATH['move'].append(move)
+            return dfs(node, move, path + [move])
 
 
 def bfs(state):
@@ -51,22 +52,23 @@ def bfs(state):
     queue, symbol = [state.copy()], [BLANK]
     CLOSED.append(state.copy())
 
-    while True:
-        for move in ACTION[symbol[0]]:
-            state, blank = queue[0].copy(), symbol[0]
+    while queue:
+        blank = symbol[0]
+        for move in ACTION[blank]:
+            node = queue[0].copy()
 
-            state[blank], state[move] = state[move], state[blank]
+            node[blank], node[move] = node[move], node[blank]
 
-            if state not in CLOSED:
-                queue.append(state)
+            if node not in CLOSED:
+                queue.append(node)
                 symbol.append(move)
-                # PATH["move"].append(DIR[(blank, move)])
-                PATH["move"].append(move)
-                CLOSED.append(state)
+                PATH["move"].append(DIR[(blank, move)])
+                # PATH['move'].append(move)
+                CLOSED.append(node)
 
         PATH["route"].append(queue[0])
 
-        if queue[0] == FINAL or not queue:
+        if queue[0] == FINAL:
             break
 
         queue.pop(0)
@@ -76,7 +78,7 @@ def bfs(state):
 if __name__ == "__main__":
     # 2x2 Puzzle
 
-    dfs(START.copy(), BLANK)
+    PATH["move"] = dfs(START.copy(), BLANK, [])
     print("Moves:", PATH["move"])
     for depth, node in enumerate(PATH["route"]):
         print("Depth #", depth, node)
@@ -92,8 +94,9 @@ if __name__ == "__main__":
 
     # 3x3 Puzzle
 
+    """
     CLOSED = []
-    PATH = {"route": [], "move": []}
+    PATH = {'route': [], 'move': []}
 
     START, FINAL = [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]
 
@@ -110,17 +113,16 @@ if __name__ == "__main__":
     ]
 
     dfs(START.copy(), BLANK)
-    print("\nMoves:", PATH["move"])
-    for depth, node in enumerate(PATH["route"]):
-        print("Depth #", depth, node)
+    print('\nMoves:', PATH['move'])
+    for depth, node in enumerate(PATH['route']):
+        print('Depth #', depth, node)
 
     CLOSED = []
-    PATH = {"route": [], "move": []}
+    PATH = {'route': [], 'move': []}
 
-    """
     bfs(START.copy())
 
     print('\nMoves:', PATH['move'])
     for depth, node in enumerate(PATH['route']):
-        print("Depth #", depth, node)
+        print('Depth #', depth, node)
     """
