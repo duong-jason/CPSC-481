@@ -24,7 +24,7 @@ DIR = {
     (3, 1): "Up",
 }
 
-PATH = []
+CLOSED = []
 
 
 class State:
@@ -40,6 +40,7 @@ class State:
     def get_moves(self, curr):
         """outputs the states and path needed to solve"""
         if curr is None:
+            print("Number of Visited Nodes:", len(CLOSED))
             return None
 
         print("State: {} Move: {}".format(curr.state, curr.move))
@@ -47,7 +48,7 @@ class State:
 
     def dfs(self, curr):
         """depth-first search implementation"""
-        PATH.append(curr.state)
+        CLOSED.append(curr.state)
 
         if curr.state != FINAL:
             for move in ACTION[curr.blank]:
@@ -55,7 +56,7 @@ class State:
 
                 child[curr.blank], child[move] = child[move], child[curr.blank]
 
-                if child not in PATH:
+                if child not in CLOSED:
                     node = State(move, curr.state, child,
                                  DIR[(curr.blank, move)])
                     curr.next = node  # next pointer
@@ -65,40 +66,39 @@ class State:
 
     def bfs(self):
         """breadth-first search implementation"""
-        queue = [self]
-        PATH.append(self.state)
+        OPEN = [self]
+        CLOSED.append(self.state)
 
-        while queue:
-            front, blank = queue[0].state, queue[0].blank
+        while OPEN:
+            front, blank = OPEN[0].state, OPEN[0].blank
             for move in ACTION[blank]:
                 child = front.copy()
 
                 child[blank], child[move] = child[move], child[blank]
 
-                if child not in PATH:
+                if child not in CLOSED:
+                    CLOSED.append(child)
                     node = State(move, front, child,
                                  DIR[(blank, move)])
-                    queue[0].next = node
-                    queue.append(node)
-
-            PATH.append(child)
+                    OPEN.append(node)
+                    print("State: {} Move: {}".format(front, DIR[(blank, move)]))
 
             if front == FINAL:
                 break
 
-            queue.pop(0)
+            OPEN.pop(0)
+
+        print("Number of Visited Nodes:", len(CLOSED))
 
 
 if __name__ == "__main__":
     print("DFS")
-
     T1 = State(BLANK, None, START, None)
     T1.dfs(T1)
     T1.get_moves(T1)
 
-    PATH = []
+    CLOSED = []
 
     print("\nBFS")
     T2 = State(BLANK, None, START, None)
     T2.bfs()
-    T2.get_moves(T2)
