@@ -13,7 +13,7 @@ BLANK = 0
 
 START, FINAL = [0, 3, 2, 1], [1, 2, 3, 0]
 
-ACTION = [(1, 2), (0, 3), (3, 0), (2, 1)]
+ACTION = ((1, 2), (0, 3), (3, 0), (2, 1))
 DIR = {
     (0, 1): "R",
     (0, 2): "D",
@@ -26,7 +26,7 @@ DIR = {
 }
 
 CLOSED = []
-PATH = {"route": [], "move": []}
+PATH = {"route": [], "move": [None]}
 
 
 def dfs(state, marker, path):
@@ -34,17 +34,16 @@ def dfs(state, marker, path):
     CLOSED.append(state.copy())
     PATH["route"].append(state.copy())
 
-    if state == FINAL:
-        return path
+    if state != FINAL:
+        for move in ACTION[marker]:
+            child = state.copy()
+            child[marker], child[move] = child[move], child[marker]
 
-    for move in ACTION[marker]:
-        node = state.copy()
-        node[marker], node[move] = node[move], node[marker]
+            if child not in CLOSED:
+                return dfs(child, move, path + [DIR[(marker, move)]])
+                # return dfs(child, move, path + [move])
 
-        if node not in CLOSED:
-            # PATH['move'].append(DIR[(marker, move)])
-            # PATH['move'].append(move)
-            return dfs(node, move, path + [move])
+    return path
 
 
 def bfs(state):
@@ -55,16 +54,16 @@ def bfs(state):
     while queue:
         blank = symbol[0]
         for move in ACTION[blank]:
-            node = queue[0].copy()
+            child = queue[0].copy()
 
-            node[blank], node[move] = node[move], node[blank]
+            child[blank], child[move] = child[move], child[blank]
 
-            if node not in CLOSED:
-                queue.append(node)
+            if child not in CLOSED:
+                queue.append(child)
                 symbol.append(move)
                 PATH["move"].append(DIR[(blank, move)])
                 # PATH['move'].append(move)
-                CLOSED.append(node)
+                CLOSED.append(child)
 
         PATH["route"].append(queue[0])
 
@@ -79,24 +78,23 @@ if __name__ == "__main__":
     # 2x2 Puzzle
 
     PATH["move"] = dfs(START.copy(), BLANK, [])
-    print("Moves:", PATH["move"])
-    for depth, node in enumerate(PATH["route"]):
-        print("Depth #", depth, node)
+    for times, (node, action) in enumerate(zip(PATH["route"], PATH["move"])):
+        print("Search #{} State: {} Move: {}".format(times, node, action))
+
+    CLOSED = []
+    PATH = {"route": [], "move": [None]}
+
+    bfs(START.copy())
+    print("\n")
+
+    for times, (node, action) in enumerate(zip(PATH["route"], PATH["move"])):
+        print("Search #{} State: {} Move: {}".format(times, node, action))
+
+    """
+    # 3x3 Puzzle
 
     CLOSED = []
     PATH = {"route": [], "move": []}
-
-    bfs(START.copy())
-
-    print("\nMoves:", PATH["move"])
-    for depth, node in enumerate(PATH["route"]):
-        print("Depth #", depth, node)
-
-    # 3x3 Puzzle
-
-    """
-    CLOSED = []
-    PATH = {'route': [], 'move': []}
 
     START, FINAL = [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]
 
@@ -112,17 +110,17 @@ if __name__ == "__main__":
         [5, 7],
     ]
 
-    dfs(START.copy(), BLANK)
-    print('\nMoves:', PATH['move'])
-    for depth, node in enumerate(PATH['route']):
-        print('Depth #', depth, node)
+    PATH["move"] = dfs(START.copy(), BLANK, [])
+    print("Moves:", PATH["move"])
+    for depth, node in enumerate(PATH["route"]):
+        print("Depth #", depth, node)
 
     CLOSED = []
-    PATH = {'route': [], 'move': []}
+    PATH = {"route": [], "move": []}
 
     bfs(START.copy())
 
-    print('\nMoves:', PATH['move'])
-    for depth, node in enumerate(PATH['route']):
-        print('Depth #', depth, node)
+    print("\nMoves:", PATH["move"])
+    for depth, node in enumerate(PATH["route"]):
+        print("Depth #", depth, node)
     """
