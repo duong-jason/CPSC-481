@@ -10,7 +10,7 @@
 """2x2 tile puzzle implementation with DFS and BFS"""
 
 BLANK = 0
-START, FINAL = [0, 3, 2, 1], [1, 2, 3, 0]
+START, GOAL = [0, 3, 2, 1], [1, 2, 3, 0]
 
 ACTION = ((1, 2), (0, 3), (3, 0), (2, 1))
 DIR = {
@@ -25,6 +25,7 @@ DIR = {
 }
 
 CLOSED = []
+PATH = []
 
 
 class State:
@@ -50,45 +51,42 @@ class State:
         """depth-first search implementation"""
         CLOSED.append(curr.state)
 
-        if curr.state != FINAL:
+        if curr.state != GOAL:
             for move in ACTION[curr.blank]:
                 child = curr.state.copy()
 
                 child[curr.blank], child[move] = child[move], child[curr.blank]
 
                 if child not in CLOSED:
-                    node = State(move, curr.state, child,
-                                 DIR[(curr.blank, move)])
-                    curr.next = node  # next pointer
-                    return self.dfs(node)
+                    curr.next = State(move, curr.state, child, DIR[(curr.blank, move)])
+                    return self.dfs(curr.next)
 
         return None
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [self]
+        OPEN = [(self, [self.state])]
         CLOSED.append(self.state)
 
         while OPEN:
-            front, blank = OPEN[0].state, OPEN[0].blank
-            for move in ACTION[blank]:
-                child = front.copy()
+            front, path = OPEN[0][0], OPEN[0][1]
+            for move in ACTION[front.blank]:
+                child = front.state.copy()
 
-                child[blank], child[move] = child[move], child[blank]
+                child[front.blank], child[move] = child[move], child[front.blank]
 
-                if child not in CLOSED:
+                if front.state == GOAL:
+                    return path
+                elif child not in CLOSED:
                     CLOSED.append(child)
-                    node = State(move, front, child,
-                                 DIR[(blank, move)])
-                    OPEN.append(node)
-                    print("State: {} Move: {}".format(front, DIR[(blank, move)]))
-
-            if front == FINAL:
-                break
+                    OPEN.append(
+                        (
+                            State(move, front.state, child, DIR[(front.blank, move)]),
+                            path + [child],
+                        )
+                    )
 
             OPEN.pop(0)
-
-        print("Number of Visited Nodes:", len(CLOSED))
 
 
 if __name__ == "__main__":
@@ -101,4 +99,6 @@ if __name__ == "__main__":
 
     print("\nBFS")
     T2 = State(BLANK, None, START, None)
-    T2.bfs()
+    result = T2.bfs()
+    print(result)
+    print("Number of Visited Nodes:", len(result))
