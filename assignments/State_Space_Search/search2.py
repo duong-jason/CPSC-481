@@ -25,10 +25,11 @@ DIR = {
 }
 
 PATH = []
-MOVE = [None]
 
 
 class State:
+    """State Reprsentation"""
+
     def __init__(self, blank, parent, state, move):
         self.blank = blank
         self.parent = parent
@@ -36,11 +37,13 @@ class State:
         self.next = None
         self.move = move
 
-    def getMoves(self, curr):
-        while curr != None:
-            print("{} | {} -> ".format(curr.move, curr.state), end='')
-            curr = curr.next
-        print("goal")
+    def get_moves(self, curr):
+        """outputs the states and path needed to solve"""
+        if curr is None:
+            return None
+
+        print("State: {} Move: {}".format(curr.state, curr.move))
+        return self.get_moves(curr.next)
 
     def dfs(self, curr):
         """depth-first search implementation"""
@@ -52,76 +55,50 @@ class State:
 
                 child[curr.blank], child[move] = child[move], child[curr.blank]
 
-#                print(curr.state, " -> ", child)
                 if child not in PATH:
-                    node = State(move,
-                                 curr.state,
-                                 child,
+                    node = State(move, curr.state, child,
                                  DIR[(curr.blank, move)])
-                    curr.next = node # next pointer
+                    curr.next = node  # next pointer
                     return self.dfs(node)
 
         return None
 
+    def bfs(self):
+        """breadth-first search implementation"""
+        queue = [self]
+        PATH.append(self.state)
 
-def dfs(state, blank):
-    """depth-first search implementation"""
-    PATH.append(state)
+        while queue:
+            front, blank = queue[0].state, queue[0].blank
+            for move in ACTION[blank]:
+                child = front.copy()
 
-    if state != FINAL:
-        for move in ACTION[blank]:
-            child = state.copy()
-            child[blank], child[move] = child[move], child[blank]
+                child[blank], child[move] = child[move], child[blank]
 
-            if child not in PATH:
-                MOVE.append(DIR[(blank, move)])
-                return dfs(child, move)
+                if child not in PATH:
+                    node = State(move, front, child,
+                                 DIR[(blank, move)])
+                    queue[0].next = node
+                    queue.append(node)
 
-    return None
+            PATH.append(child)
 
+            if front == FINAL:
+                break
 
-def bfs():
-    """breadth-first search implementation"""
-    queue, symbol = [START], [BLANK]
-    PATH.append(START)
-
-    while queue:
-        front, blank = queue[0], symbol[0]
-        for move in ACTION[blank]:
-            child = front.copy()
-
-            child[blank], child[move] = child[move], child[blank]
-
-            if child not in PATH:
-                queue.append(child)
-                symbol.append(move)
-                MOVE.append(DIR[(blank, move)])
-                PATH.append(child)
-
-        if front == FINAL:
-            break
-
-        queue.pop(0)
-        symbol.pop(0)
+            queue.pop(0)
 
 
 if __name__ == "__main__":
-    node = State(BLANK, None, START, None)
-    node.dfs(node)
+    print("DFS")
 
-    print("DFS: ", end='')
-    node.getMoves(node)
+    T1 = State(BLANK, None, START, None)
+    T1.dfs(T1)
+    T1.get_moves(T1)
 
-    """
-    dfs(START, BLANK)
-    for step, (node, action) in enumerate(zip(PATH, MOVE)):
-        print("Step #{} State: {} Move: {}".format(step, node, action))
+    PATH = []
 
-    PATH, MOVE = [], [None]
-
-    bfs()
-    print()
-
-    for step, (node, action) in enumerate(zip(PATH, MOVE)):
-        print("Step #{} State: {} Move: {}".format(step, node, action))
-    """
+    print("\nBFS")
+    T2 = State(BLANK, None, START, None)
+    T2.bfs()
+    T2.get_moves(T2)
