@@ -25,13 +25,13 @@ DIR = {
 }
 
 CLOSED = []
-PATH = []
 
+f = open("output2.txt", "a")
 
 class State:
     """State Reprsentation"""
 
-    def __init__(self, blank, state, parent, move):
+    def __init__(self, blank, state, parent=None, move=None):
         self.blank = blank
         self.state = state
         self.parent = parent
@@ -41,72 +41,65 @@ class State:
     def get_moves(self, curr):
         """outputs the states and path needed to solve"""
         if curr is None:
-            print("Number of Visited Nodes:", len(CLOSED))
+            print("Number of Visited Nodes:", len(CLOSED), file=f)
             return None
 
-        print("State: {} Move: {}".format(curr.state, curr.move))
+        print("State: {} Move: {}".format(curr.state, curr.move), file=f)
         return self.get_moves(curr.next)
 
-    def dfs(self, curr):
+    def dfs(self, top):
         """depth-first search implementation"""
-        CLOSED.append(curr.state)
+        CLOSED.append(top.state)
 
-        if curr.state != GOAL:
-            for move in ACTION[curr.blank]:
-                child = curr.state.copy()
+        if top.state != GOAL:
+            for move in ACTION[top.blank]:
+                child = top.state.copy()
 
-                child[curr.blank], child[move] = child[move], child[curr.blank]
+                child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in CLOSED:
-                    curr.next = State(move, child,curr.state,
-                                      DIR[(curr.blank, move)])
-                    return self.dfs(curr.next)
+                    top.next = State(move, child, top.state,
+                                     DIR[(top.blank, move)])
+                    return self.dfs(top.next)
 
         return None
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [(self, [self.move])]
+        OPEN = [self]
         CLOSED.append(self.state)
 
         while OPEN:
-            front, path = OPEN[0][0], OPEN[0][1]
+            front = OPEN[0]
             for move in ACTION[front.blank]:
                 child = front.state.copy()
 
                 child[front.blank], child[move] = child[move], child[front.blank]
 
                 if front.state == GOAL:
-                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]))
-                    print("Number of Visited Nodes:", len(CLOSED))
-                    return path
-                elif child not in CLOSED:
-                    CLOSED.append(child)
-                    front.next = State(move, child, front.state,
-                                       DIR[(front.blank, move)])
-                    OPEN.append((front.next, path + [move]))
+                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]), file=f)
+                    print("Number of Visited Nodes:", len(CLOSED), file=f)
 
-                    """ testing """
-                    print("State: {} Move: {}".format(front.next.state, DIR[(front.blank, move)]))
+                    return None
+                elif child not in CLOSED:
+                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]), file=f)
+                    CLOSED.append(child)
+                    OPEN.append(State(move, child, front.state,
+                                      DIR[(front.blank, move)]))
 
             OPEN.pop(0)
 
 
 if __name__ == "__main__":
-    print("DFS")
-    T1 = State(BLANK, START, None, None)
+    print("DFS", file=f)
+    T1 = State(BLANK, START)
     T1.dfs(T1)
     T1.get_moves(T1)
 
     CLOSED = []
 
-    print("\nBFS")
-    T2 = State(BLANK, START, None, None)
+    print("\nBFS", file=f)
+    T2 = State(BLANK, START)
     T2.bfs()
-    #T2.get_moves(T2)
 
-    """
-    result = T2.bfs()
-    print(result)
-    print("Number of Visited Nodes:", len(result))
-    """
+    f.close()
