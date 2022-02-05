@@ -26,7 +26,8 @@ DIR = {
 
 CLOSED = []
 
-f = open("output2.txt", "a")
+f = open("output2.txt", "r+")
+f.truncate(0)
 
 class State:
     """State Reprsentation"""

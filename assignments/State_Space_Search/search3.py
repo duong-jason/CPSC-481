@@ -26,7 +26,8 @@ ACTION = (
 
 CLOSED = []
 
-f = open("output3.txt", "a")
+f = open("output3.txt", "r+")
+f.truncate(0)
 
 class State:
     """State Reprsentation"""
@@ -96,8 +97,10 @@ if __name__ == "__main__":
 
     CLOSED = []
 
+    """
     print("\nBFS",file=f)
     T2 = State(BLANK, START)
     T2.bfs()
+    """
 
     f.close()
