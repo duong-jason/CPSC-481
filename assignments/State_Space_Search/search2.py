@@ -12,8 +12,8 @@
 BLANK = 0
 START, GOAL = [0, 3, 2, 1], [1, 2, 3, 0]
 
-ACTION = ((1, 2), (0, 3), (3, 0), (2, 1))
-DIR = {
+TABLE = ((1, 2), (0, 3), (3, 0), (2, 1))
+ACTION = {
     (0, 1): "Right",
     (0, 2): "Down",
     (1, 0): "Left",
@@ -28,6 +28,7 @@ CLOSED = []
 
 f = open("output2.txt", "r+")
 f.truncate(0)
+
 
 class State:
     """State Reprsentation"""
@@ -53,14 +54,12 @@ class State:
         CLOSED.append(top.state)
 
         if top.state != GOAL:
-            for move in ACTION[top.blank]:
+            for move in TABLE[top.blank]:
                 child = top.state.copy()
-
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in CLOSED:
-                    top.next = State(move, child, top.state,
-                                     DIR[(top.blank, move)])
+                    top.next = State(move, child, top.state, ACTION[(top.blank, move)])
                     return self.dfs(top.next)
 
         return None
@@ -72,21 +71,20 @@ class State:
 
         while OPEN:
             front = OPEN[0]
-            for move in ACTION[front.blank]:
+            for move in TABLE[front.blank]:
                 child = front.state.copy()
 
                 child[front.blank], child[move] = child[move], child[front.blank]
 
                 if front.state == GOAL:
-                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]), file=f)
+                    print("State: {} Move: {}".format(front.state, ACTION[(front.blank, move)]), file=f)
                     print("Number of Visited Nodes:", len(CLOSED), file=f)
-
                     return None
-                elif child not in CLOSED:
-                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]), file=f)
+
+                if child not in CLOSED:
+                    print("State: {} Move: {}".format(front.state, ACTION[(front.blank, move)]), file=f)
                     CLOSED.append(child)
-                    OPEN.append(State(move, child, front.state,
-                                      DIR[(front.blank, move)]))
+                    OPEN.append(State(move, child, front.state, ACTION[(front.blank, move)]))
 
             OPEN.pop(0)
 
