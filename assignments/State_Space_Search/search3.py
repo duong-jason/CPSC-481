@@ -12,7 +12,7 @@
 BLANK = 4
 START, GOAL = [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]
 
-ACTION = (
+TABLE = (
     (1, 3),
     (0, 2, 4),
     (1, 5),
@@ -26,8 +26,6 @@ ACTION = (
 
 CLOSED = []
 
-f = open("output3.txt", "r+")
-f.truncate(0)
 
 class State:
     """State Reprsentation"""
@@ -39,23 +37,22 @@ class State:
         self.next = None
         self.move = move
 
-    def get_moves(self, curr):
+    def get_path(self, curr):
         """outputs the states and path needed to solve"""
         if curr is None:
-            print("Number of Visited Nodes:", len(CLOSED), file=f)
+            print("Number of Visited Nodes:", len(CLOSED))
             return None
 
-        print("State: {} Move: {}".format(curr.state, curr.move), file=f)
-        return self.get_moves(curr.next)
+        print("State: {} Move: {}".format(curr.state, curr.move))
+        return self.get_path(curr.next)
 
     def dfs(self, top):
         """depth-first search implementation"""
         CLOSED.append(top.state)
 
         if top.state != GOAL:
-            for move in ACTION[top.blank]:
+            for move in TABLE[top.blank]:
                 child = top.state.copy()
-
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in CLOSED:
@@ -66,41 +63,34 @@ class State:
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [self]
-        CLOSED.append(self.state)
+        OPEN = [self] # queue data structure
+        CLOSED.append(self.state) # closed list of visited states
 
         while OPEN:
-            front = OPEN[0]
-            for move in ACTION[front.blank]:
-                child = front.state.copy()
+            frontier = OPEN.pop(0)
+            for move in TABLE[frontier.blank]:
+                child = frontier.state.copy()
+                child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
-                child[front.blank], child[move] = child[move], child[front.blank]
-
-                if front.state == GOAL:
-                    print("State: {} Move: {}".format(front.state, front.move), file=f)
-                    print("Number of Visited Nodes:", len(CLOSED), file=f)
-
+                if frontier.state == GOAL:
+                    print("State: {} Move: {}".format(frontier.state, move))
+                    print("Number of Visited Nodes:", len(CLOSED))
                     return None
-                elif child not in CLOSED:
-                    print("State: {} Move: {}".format(front.state, front.move), file=f)
-                    CLOSED.append(child)
-                    OPEN.append(State(move, child, front.state, move))
 
-            OPEN.pop(0)
+                if child not in CLOSED:
+                    print("State: {} Move: {}".format(frontier.state, move))
+                    CLOSED.append(child)
+                    OPEN.append(State(move, child, frontier.state, move))
 
 
 if __name__ == "__main__":
-    print("DFS", file=f)
+    print("DFS")
     T1 = State(BLANK, START)
     T1.dfs(T1)
-    T1.get_moves(T1)
+    T1.get_path(T1)
 
     CLOSED = []
 
-    """
-    print("\nBFS",file=f)
+    print("\nBFS")
     T2 = State(BLANK, START)
     T2.bfs()
-    """
-
-    f.close()
