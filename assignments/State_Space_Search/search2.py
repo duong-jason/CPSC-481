@@ -31,10 +31,10 @@ PATH = []
 class State:
     """State Reprsentation"""
 
-    def __init__(self, blank, parent, state, move):
+    def __init__(self, blank, state, parent, move):
         self.blank = blank
-        self.parent = parent
         self.state = state
+        self.parent = parent
         self.next = None
         self.move = move
 
@@ -58,14 +58,15 @@ class State:
                 child[curr.blank], child[move] = child[move], child[curr.blank]
 
                 if child not in CLOSED:
-                    curr.next = State(move, curr.state, child, DIR[(curr.blank, move)])
+                    curr.next = State(move, child,curr.state,
+                                      DIR[(curr.blank, move)])
                     return self.dfs(curr.next)
 
         return None
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [(self, [self.state])]
+        OPEN = [(self, [self.move])]
         CLOSED.append(self.state)
 
         while OPEN:
@@ -76,29 +77,36 @@ class State:
                 child[front.blank], child[move] = child[move], child[front.blank]
 
                 if front.state == GOAL:
+                    print("State: {} Move: {}".format(front.state, DIR[(front.blank, move)]))
+                    print("Number of Visited Nodes:", len(CLOSED))
                     return path
                 elif child not in CLOSED:
                     CLOSED.append(child)
-                    OPEN.append(
-                        (
-                            State(move, front.state, child, DIR[(front.blank, move)]),
-                            path + [child],
-                        )
-                    )
+                    front.next = State(move, child, front.state,
+                                       DIR[(front.blank, move)])
+                    OPEN.append((front.next, path + [move]))
+
+                    """ testing """
+                    print("State: {} Move: {}".format(front.next.state, DIR[(front.blank, move)]))
 
             OPEN.pop(0)
 
 
 if __name__ == "__main__":
     print("DFS")
-    T1 = State(BLANK, None, START, None)
+    T1 = State(BLANK, START, None, None)
     T1.dfs(T1)
     T1.get_moves(T1)
 
     CLOSED = []
 
     print("\nBFS")
-    T2 = State(BLANK, None, START, None)
+    T2 = State(BLANK, START, None, None)
+    T2.bfs()
+    #T2.get_moves(T2)
+
+    """
     result = T2.bfs()
     print(result)
     print("Number of Visited Nodes:", len(result))
+    """
