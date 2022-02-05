@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Jason Duong
 # CPSC 481-01
 # 2022-02-02
@@ -23,57 +22,60 @@ ACTION = {
 
 CLOSED = []
 
-class Problem:
-    def __init__(self, blank, start=None, goal=None):
-        self.blank = blank
-        self.start = start
-        self.goal = goal
-
-    def solve(self):
-        path = State(self.blank, self.start)
-        self.reconstruct(path.dfs(path))
-
-    def reconstruct(self, node):
-        """outputs the states and path needed to solve"""
-        count = 0
-        while node is not None:
-            print("State: {} Move: {}".format(node.state, node.move))
-            node = node.kid
-            count += 1
-
-        print("Number of Visited Nodes:", count)
-
-
-problem = Problem(0, [0, 3, 2, 1], [1, 2, 3, 0])
-
-GOAL = [1, 2, 3, 0]
-
-class State(Problem):
+class State:
     """State Reprsentation"""
 
     def __init__(self, blank, state, parent=None, move=None):
         self.blank = blank
         self.state = state
         self.parent = parent
-        self.kid = None
         self.move = move
 
-        Problem.__init__(self, blank, state)
 
-    def dfs(self, top):
+class Problem(State):
+    """State Space/Problem Representation"""
+
+    def __init__(self, blank, table, start=None, goal=None):
+        State.__init__(self, blank, start)
+
+        self.table = table
+        self.goal = goal
+        self.path = []
+
+    def reset(self):
+         self.path = []
+
+    def solve(self):
+        """
+        print("DFS")
+        self.reconstruct(self.dfs(State(self.blank, self.state)))
+
+        self.reset()
+        """
+
+        print("DFS")
+        print("\nBFS")
+        self.reconstruct(self.bfs())
+
+    def reconstruct(self, node):
+        """outputs the states and path needed to solve"""
+        for count, node in enumerate(self.path):
+            print("Explored #", count, node)
+
+    def dfs(self, frontier):
         """depth-first search implementation"""
-        CLOSED.append(top.state)
+        CLOSED.append(frontier.state)
+        self.path.append("State: {} Move: {}".format(frontier.state, frontier.move))
 
-        if top.state != GOAL:
-            for move in TABLE[top.blank]:
-                child = top.state.copy()
-                child[top.blank], child[move] = child[move], child[top.blank]
+        if frontier.state != self.goal:
+            for move in self.table[frontier.blank]:
+                child = frontier.state.copy()
+                child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 if child not in CLOSED:
-                    top.kid = State(move, child, top.state, ACTION[(top.blank, move)])
-                    return self.dfs(top.kid)
+                    return self.dfs(State(move, child, frontier.state, move))
 
-        return self
+        return None
 
     def bfs(self):
         """breadth-first search implementation"""
@@ -82,20 +84,24 @@ class State(Problem):
 
         while OPEN:
             frontier = OPEN.pop(0)
-            for move in TABLE[frontier.blank]:
+            for move in self.table[frontier.blank]:
                 child = frontier.state.copy()
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
-                if frontier.state == GOAL:
-                    print("State: {} Move: {}".format(frontier.state, ACTION[(frontier.blank, move)]))
-                    print("Number of Visited Nodes:", len(CLOSED))
+                if frontier.state == self.goal:
+                    self.path.append("State: {} Move: {}".format(frontier.state, move))
                     return None
 
                 if child not in CLOSED:
-                    print("State: {} Move: {}".format(frontier.state, ACTION[(frontier.blank, move)]))
                     CLOSED.append(child)
-                    OPEN.append(State(move, child, frontier.state, ACTION[(frontier.blank, move)]))
+                    OPEN.append(State(move, child, frontier.state, move))
+                    self.path.append("State: {} Move: {}".format(frontier.state, move))
+
+
+tile2 = Problem(0, ((1, 2), (0, 3), (3, 0), (2, 1)), [0, 3, 2, 1], [1, 2, 3, 0])
+tile3 = Problem(4, ((1, 3), (0, 2, 4), (1, 5), (0, 4, 6), (1, 3, 5, 7), (2, 4, 8), (3, 7), (4, 6, 8), (5, 7)), [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0])
 
 
 if __name__ == "__main__":
-    problem.solve()
+    tile2.solve()
+    tile3.solve()
