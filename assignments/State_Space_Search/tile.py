@@ -9,7 +9,6 @@
 #
 """2x2 tile puzzle implementation with DFS and BFS"""
 
-CLOSED = []
 
 
 class State:
@@ -30,21 +29,22 @@ class Problem(State):
         self.table = table
         self.goal = goal
         self.path = []
+        self.closed = []
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
-        CLOSED.clear()
+        self.closed.clear()
         self.path.clear()
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
-        print("\033[32m---\nDFS\n---\033[0m")
+        print("---\nDFS\n---")
         self.dfs(State(self.blank, self.state))
         self.reconstruct()
 
         self.reset()
 
-        print("\033[93m---\nBFS\n---\033[0m")
+        print("---\nBFS\n---")
         self.bfs()
         self.reconstruct()
 
@@ -53,17 +53,17 @@ class Problem(State):
         for count, node in enumerate(self.path):
             print("Explored #", count, node)
 
-    def dfs(self, frontier):
+    def dfs(self, top):
         """depth-first search implementation"""
-        CLOSED.append(frontier.state)
-        self.path.append("State: {} Move: {}".format(frontier.state, frontier.move))
+        self.path.append("State: {} Move: {}".format(top.state, top.move))
+        self.closed.append(top.state)
 
-        if frontier.state != self.goal:
-            for move in self.table[frontier.blank]:
-                child = frontier.state.copy()
-                child[frontier.blank], child[move] = child[move], child[frontier.blank]
+        if top.state != self.goal:
+            for move in self.table[top.blank]:
+                child = top.state.copy()
+                child[top.blank], child[move] = child[move], child[top.blank]
 
-                if child not in CLOSED:
+                if child not in self.closed:
                     return self.dfs(State(move, child, move))
 
         return None
@@ -71,7 +71,7 @@ class Problem(State):
     def bfs(self):
         """breadth-first search implementation"""
         OPEN = [self]  # queue data structure
-        CLOSED.append(self.state)  # closed list of visited states
+        self.closed.append(self.state)  # closed list of visited states
 
         while OPEN:
             frontier = OPEN.pop(0)
@@ -83,8 +83,8 @@ class Problem(State):
                     self.path.append("State: {} Move: {}".format(frontier.state, move))
                     return None
 
-                if child not in CLOSED:
-                    CLOSED.append(child)
+                if child not in self.closed:
+                    self.closed.append(child)
                     OPEN.append(State(move, child, move))
                     self.path.append("State: {} Move: {}".format(frontier.state, move))
 
@@ -94,15 +94,15 @@ if __name__ == "__main__":
     TILE_3 = Problem(
         4,
         (
-            (1, 3),
+            (3, 1),
             (0, 2, 4),
             (1, 5),
             (0, 4, 6),
-            (1, 3, 5, 7),
+            (1, 5, 7, 3),
             (2, 4, 8),
-            (3, 7),
-            (4, 6, 8),
-            (5, 7),
+            (7, 3),
+            (8, 4, 6),
+            (7, 5),
         ),
         [1, 4, 3, 7, 0, 6, 5, 8, 2],
         [1, 2, 3, 4, 5, 6, 7, 8, 0],
