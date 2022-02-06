@@ -13,12 +13,11 @@ CLOSED = []
 
 
 class State:
-    """State Reprsentation"""
+    """State Reprsentation: current configuration of puzzle"""
 
-    def __init__(self, blank, state, parent=None, move=None):
+    def __init__(self, blank, state, move=None):
         self.blank = blank
         self.state = state
-        self.parent = parent
         self.move = move
 
 
@@ -42,13 +41,12 @@ class Problem(State):
         print("\033[32m---\nDFS\n---\033[0m")
         self.dfs(State(self.blank, self.state))
         self.reconstruct()
-        """
+
         self.reset()
 
         print("\033[93m---\nBFS\n---\033[0m")
         self.bfs()
         self.reconstruct()
-        """
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
@@ -66,7 +64,7 @@ class Problem(State):
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 if child not in CLOSED:
-                    return self.dfs(State(move, child, frontier.state, move))
+                    return self.dfs(State(move, child, move))
 
         return None
 
@@ -87,7 +85,7 @@ class Problem(State):
 
                 if child not in CLOSED:
                     CLOSED.append(child)
-                    OPEN.append(State(move, child, frontier.state, move))
+                    OPEN.append(State(move, child, move))
                     self.path.append("State: {} Move: {}".format(frontier.state, move))
 
 
