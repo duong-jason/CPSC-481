@@ -7,19 +7,32 @@
 #
 # Assignment #1 - Tile Puzzle
 #
-"""2x2 tile puzzle implementation with DFS and BFS"""
+"""tile puzzle implementation with DFS and BFS"""
 
 
 class State:
-    """State Reprsentation: current configuration of puzzle"""
+    """State Representation: current configuration of puzzle"""
 
     def __init__(self, blank, state, move=None):
         self.blank = blank
         self.state = state
         self.move = move
 
+    def action(self, blank, move):
+        key = move - blank
+        if key == -3:
+            return "UP"
+        elif key == 3:
+            return "DOWN"
+        elif key == -1:
+            return "LEFT"
+        elif key ==  1:
+            return "RIGHT"
+        else:
+            return "NULL"
 
-class Problem(State):
+
+class Puzzle(State):
     """State Space Representation"""
 
     def __init__(self, blank, table, start=None, goal=None):
@@ -65,7 +78,7 @@ class Problem(State):
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in self.closed:
-                    self.path.append({ 'state': child, 'move': move })
+                    self.path.append({ 'state': child, 'move': self.action(top.blank, move) })
                     return self.dfs(State(move, child, move))
 
         return None
@@ -82,18 +95,18 @@ class Problem(State):
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 if frontier.state == self.goal:
-                    self.path.append({ 'state': child, 'move': move })
+                    self.path.append({ 'state': frontier.state, 'move': self.action(frontier.blank, move) })
                     return None
 
                 if child not in self.closed:
                     self.closed.append(child)
-                    self.path.append({ 'state': child, 'move': move })
+                    self.path.append({ 'state': child, 'move': self.action(frontier.blank, move) })
                     OPEN.append(State(move, child, move))
 
 
 if __name__ == "__main__":
-    TILE_2 = Problem(0, ((1, 2), (0, 3), (3, 0), (2, 1)), [0, 3, 2, 1], [1, 2, 3, 0])
-    TILE_3 = Problem(
+    TILE_2 = Puzzle(0, ((1, 2), (0, 3), (3, 0), (2, 1)), [0, 3, 2, 1], [1, 2, 3, 0])
+    TILE_3 = Puzzle(
         4,
         (
             (3, 1),
