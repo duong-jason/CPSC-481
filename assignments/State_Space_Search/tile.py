@@ -10,7 +10,6 @@
 """2x2 tile puzzle implementation with DFS and BFS"""
 
 
-
 class State:
     """State Reprsentation: current configuration of puzzle"""
 
@@ -28,7 +27,7 @@ class Problem(State):
 
         self.table = table
         self.goal = goal
-        self.path = []
+        self.path = [{ 'state': self.state, 'move': None }]
         self.closed = []
 
     def reset(self):
@@ -50,20 +49,23 @@ class Problem(State):
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
-        for count, node in enumerate(self.path):
-            print("Explored #", count, node)
+        for node in self.path:
+            print("State: {} Move: {}".format(node['state'], node['move']))
+
+        print("Explored {} States".format(len(self.path)))
+
 
     def dfs(self, top):
         """depth-first search implementation"""
-        self.path.append("State: {} Move: {}".format(top.state, top.move))
         self.closed.append(top.state)
 
         if top.state != self.goal:
             for move in self.table[top.blank]:
-                child = top.state.copy()
+                child = top.state[:]
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in self.closed:
+                    self.path.append({ 'state': child, 'move': move })
                     return self.dfs(State(move, child, move))
 
         return None
@@ -76,17 +78,17 @@ class Problem(State):
         while OPEN:
             frontier = OPEN.pop(0)
             for move in self.table[frontier.blank]:
-                child = frontier.state.copy()
+                child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 if frontier.state == self.goal:
-                    self.path.append("State: {} Move: {}".format(frontier.state, move))
+                    self.path.append({ 'state': child, 'move': move })
                     return None
 
                 if child not in self.closed:
                     self.closed.append(child)
+                    self.path.append({ 'state': child, 'move': move })
                     OPEN.append(State(move, child, move))
-                    self.path.append("State: {} Move: {}".format(frontier.state, move))
 
 
 if __name__ == "__main__":
