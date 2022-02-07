@@ -18,47 +18,41 @@ class State:
         self.state = state
         self.move = move
 
-    def action(self, blank, move):
-        key = move - blank
-        if key == -3:
-            return "UP"
-        elif key == 3:
-            return "DOWN"
-        elif key == -1:
-            return "LEFT"
-        elif key ==  1:
-            return "RIGHT"
-        else:
-            return "NULL"
-
 
 class Puzzle(State):
     """State Space Representation"""
 
-    def __init__(self, blank, table, start=None, goal=None):
+    def __init__(self, blank, table, start=None, goal=None, size=1):
         State.__init__(self, blank, start)
 
         self.table = table
         self.goal = goal
         self.path = [{ 'state': self.state, 'move': None }]
         self.closed = []
+        self.size = size
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
         self.closed.clear()
         self.path.clear()
 
+    def action(self, blank, move):
+        key = move - blank
+        action = {-self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT"}
+        return action[key]
+
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
         print("---\nDFS\n---")
         self.dfs(State(self.blank, self.state))
         self.reconstruct()
-
+        """
         self.reset()
 
         print("---\nBFS\n---")
         self.bfs()
         self.reconstruct()
+        """
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
@@ -105,7 +99,7 @@ class Puzzle(State):
 
 
 if __name__ == "__main__":
-    TILE_2 = Puzzle(0, ((1, 2), (0, 3), (3, 0), (2, 1)), [0, 3, 2, 1], [1, 2, 3, 0])
+    TILE_2 = Puzzle(0, ((1, 2), (0, 3), (3, 0), (2, 1)), [0, 3, 2, 1], [1, 2, 3, 0], 2)
     TILE_3 = Puzzle(
         4,
         (
@@ -121,6 +115,7 @@ if __name__ == "__main__":
         ),
         [1, 4, 3, 7, 0, 6, 5, 8, 2],
         [1, 2, 3, 4, 5, 6, 7, 8, 0],
+        3
     )
 
     TILE_2.solve()
