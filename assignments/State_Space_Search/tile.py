@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-# Jason Duong
+# Danny Diep, Jason Duong, Joshua Konechy
 # CPSC 481-01
 # 2022-02-02
-# reddkingdom@csu.fullerton.edu
-# @duong-jason
+# @DannyDiep963, @duong-jason, @KonechyJ
 #
 # Assignment #1 - Tile Puzzle
 #
@@ -26,16 +25,15 @@ class Puzzle(State):
         State.__init__(self, blank, start)
 
         self.goal = goal
-        self.state_path = [self.state]
-        self.move_path = []
+        self.path = { 'state': [self.state], 'move': [None] }
         self.closed = [self.state]
         self.size = len(self.state) ** (1 / 2) # get matrix size
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
         self.closed = [self.state]
-        self.state_path.clear()
-        self.move_path.clear()
+        self.path['state'] = [self.state]
+        self.path['move'] = [None]
 
     def expand(self, blank):
         """expands neighbor tiles by removing tiles if the blank is on any border"""
@@ -61,13 +59,11 @@ class Puzzle(State):
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
-        """
         print("---\nDFS\n---")
         self.dfs(State(self.blank, self.state))
         self.reconstruct()
 
         self.reset()
-        """
 
         print("---\nBFS\n---")
         self.bfs()
@@ -75,11 +71,10 @@ class Puzzle(State):
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
-        for node in self.state_path:
-            print("State: ", node)
+        for i, (node, move) in enumerate(zip(self.path['state'], self.path['move'])):
+                print("State: {} Move: {}".format(node, move))
 
-        print("\nMoves:", self.move_path)
-        print("\nExplored {} States".format(len(self.state_path)))
+        print("\nExplored {} States".format(len(self.closed)))
 
     def dfs(self, top):
         """depth-first search implementation"""
@@ -91,8 +86,8 @@ class Puzzle(State):
                 if child not in self.closed:
                     self.closed.append(child)
 
-                    self.state_path.append(child)
-                    self.move_path.append(self.action(top.blank, move))
+                    self.path['state'].append(child)
+                    self.path['move'].append(self.action(top.blank, move))
 
                     return self.dfs(State(move, child, move))
 
@@ -100,10 +95,11 @@ class Puzzle(State):
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [(self, [self.move])]  # queue data structure
+
+        OPEN = [(self, [self.state], [None])]  # queue data structure + records the current path (state and move)
 
         while OPEN:
-            frontier, path = OPEN[0][0], OPEN[0][1]
+            frontier, spath, mpath = OPEN[0][0], OPEN[0][1], OPEN[0][2]
 
             for move in self.expand(frontier.blank):
                 child = frontier.state[:]
@@ -111,11 +107,13 @@ class Puzzle(State):
 
                 if child not in self.closed:
                     self.closed.append(child)
-                    self.state_path.append(child)
-                    OPEN.append((State(move, child, move), path + [self.action(frontier.blank, move)]))
+                    OPEN.append((State(move, child, move),
+                                 spath + [child],
+                                 mpath + [self.action(frontier.blank, move)]))
 
                     if child == self.goal:
-                        self.move_path = path + [self.action(frontier.blank, move)]
+                        self.path = { 'state': spath + [child],
+                                      'move': mpath + [self.action(frontier.blank, move)]}
                         return None
 
             OPEN.pop(0)
