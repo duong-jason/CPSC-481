@@ -26,44 +26,48 @@ class Puzzle(State):
         State.__init__(self, blank, start)
 
         self.goal = goal
-        self.path = [{ 'state': self.state, 'move': None }]
-        self.closed = []
-        self.size = len(self.state) ** (1/2) # get matrix size
+        self.state_path = [self.state]
+        self.move_path = []
+        self.closed = [self.state]
+        self.size = len(self.state) ** (1 / 2) # get matrix size
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
-        self.closed.clear()
-        self.path.clear()
+        self.closed = [self.state]
+        self.state_path.clear()
+        self.move_path.clear()
 
     def expand(self, blank):
         """expands neighbor tiles by removing tiles if the blank is on any border"""
         action = {"UP": -self.size, "DOWN": self.size, "LEFT": -1, "RIGHT": 1}
-        direction = ["UP", "DOWN", "LEFT", "RIGHT"]
+        direction = ["UP", "RIGHT", "LEFT", "DOWN"]
 
-        if blank < self.size: # blank is on the top-most border 
+        if blank < self.size:                   # blank is on the top-most border
             direction.remove("UP")
-        if blank >= self.size ** 2 - self.size: # blank is on the bottom-most border 
+        if blank >= self.size ** 2 - self.size: # blank is on the bottom-most border
             direction.remove("DOWN")
-        if blank % self.size == 0: # blank is on the left-most border 
+        if blank % self.size == 0:              # blank is on the left-most border
             direction.remove("LEFT")
-        if blank % self.size == self.size-1: # blank is on the right-most border 
+        if blank % self.size == self.size - 1:  # blank is on the right-most border
             direction.remove("RIGHT")
 
         return [int(blank + action[move]) for move in direction]
 
     def action(self, blank, move):
         """returns the action with respect to the blank tile and the target tile"""
-        dis = move - blank # find distance
+        dis = move - blank  # find distance
         action = {-self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT"}
         return action[dis]
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
+        """
         print("---\nDFS\n---")
         self.dfs(State(self.blank, self.state))
         self.reconstruct()
 
         self.reset()
+        """
 
         print("---\nBFS\n---")
         self.bfs()
@@ -71,47 +75,50 @@ class Puzzle(State):
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
-        for node in self.path:
-            print("State: {} Move: {}".format(node['state'], node['move']))
+        for node in self.state_path:
+            print("State: ", node)
 
-        print("Explored {} States".format(len(self.path)))
-
+        print("\nMoves:", self.move_path)
+        print("\nExplored {} States".format(len(self.state_path)))
 
     def dfs(self, top):
         """depth-first search implementation"""
-        self.closed.append(top.state)
-
         if top.state != self.goal:
-            #for move in self.table[top.blank]:
             for move in self.expand(top.blank):
                 child = top.state[:]
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 if child not in self.closed:
-                    self.path.append({ 'state': child, 'move': self.action(top.blank, move) })
+                    self.closed.append(child)
+
+                    self.state_path.append(child)
+                    self.move_path.append(self.action(top.blank, move))
+
                     return self.dfs(State(move, child, move))
 
         return None
 
     def bfs(self):
         """breadth-first search implementation"""
-        OPEN = [self]  # queue data structure
-        self.closed.append(self.state)  # closed list of visited states
+        OPEN = [(self, [self.move])]  # queue data structure
 
         while OPEN:
-            frontier = OPEN.pop(0)
-            #for move in self.table[frontier.blank]:
+            frontier, path = OPEN[0][0], OPEN[0][1]
+
             for move in self.expand(frontier.blank):
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 if child not in self.closed:
                     self.closed.append(child)
-                    self.path.append({ 'state': child, 'move': self.action(frontier.blank, move) })
-                    OPEN.append(State(move, child, move))
+                    self.state_path.append(child)
+                    OPEN.append((State(move, child, move), path + [self.action(frontier.blank, move)]))
 
                     if child == self.goal:
+                        self.move_path = path + [self.action(frontier.blank, move)]
                         return None
+
+            OPEN.pop(0)
 
 
 if __name__ == "__main__":
