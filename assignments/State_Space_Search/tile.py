@@ -24,14 +24,10 @@ class Board(State):
     def __init__(self, blank, start=None, goal=None):
         State.__init__(self, blank, start)
 
-        # goal state
-        self.goal = goal
-        # keeps track of the current path of states and actions/moves
-        self.path = { 'state': [self.state], 'move': [None] }
-        # avoids revisited redundant nodes
-        self.closed = [self.state]
-        # matrix size
-        self.size = len(self.state) ** (1 / 2)
+        self.goal = goal # goal state
+        self.path = { 'state': [self.state], 'move': [None] } # keeps track of the current path of states and actions/moves
+        self.closed = [self.state] # avoids revisited redundant nodes
+        self.size = len(self.state) ** (1 / 2) # matrix size
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
@@ -96,8 +92,7 @@ class Board(State):
 
                 # check if the child has already been visited
                 if child not in self.closed:
-                    # child is now visited
-                    self.closed.append(child)
+                    self.closed.append(child) # child is now visited
 
                     self.path['state'].append(child)
                     self.path['move'].append(self.action(top.blank, move))
@@ -124,26 +119,25 @@ class Board(State):
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
-                # check if the child has already been visited
-                if child not in self.closed:
-                    # child is now visited
-                    self.closed.append(child)
-                    # keeps track of the current path from root to child state
-                    OPEN.append((State(move, child, move),
+                # check if the child has already been visited (cycle)
+                # or currently in queue to be explored (redundant-path)
+                if child not in (self.closed or OPEN):
+                    self.closed.append(child) # child is now visited
+                    OPEN.append((State(move, child, move), # keeps track of the current path from root to child state
                                  spath + [child],
                                  mpath + [self.action(frontier.blank, move)]))
 
-                    if child == self.goal:
-                        self.path = { 'state': spath + [child],
-                                      'move': mpath + [self.action(frontier.blank, move)]}
-                        return None
+                if child == self.goal:
+                    self.path = { 'state': spath + [child],
+                                  'move': mpath + [self.action(frontier.blank, move)]}
+                    return None
 
             OPEN.pop(0)
 
 
 if __name__ == "__main__":
-    TILE_2 = Board(0, [0, 3, 2, 1], [1, 2, 3, 0])
-    TILE_3 = Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0])
+    task = [Board(0, [0, 3, 2, 1], [1, 2, 3, 0]),
+            Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0])]
 
-    TILE_2.solve()
-    TILE_3.solve()
+    for puzzle in task:
+        puzzle.solve()
