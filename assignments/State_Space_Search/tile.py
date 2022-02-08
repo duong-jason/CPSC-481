@@ -4,9 +4,9 @@
 # 2022-02-02
 # @DannyDiep963, @duong-jason, @KonechyJ
 #
-# Assignment #1 - TileBoard 
+# Assignment #1 - Sliding Tile Puzzle
 #
-"""tile puzzle implementation with DFS and BFS"""
+"""sliding tile puzzle implementation with DFS and BFS"""
 
 
 class State:
@@ -24,15 +24,21 @@ class Board(State):
     def __init__(self, blank, start=None, goal=None):
         State.__init__(self, blank, start)
 
-        self.goal = goal # goal state
-        self.path = { 'state': [self.state], 'move': [None] } # keeps track of the current path of states and actions/moves
-        self.closed = [self.state] # avoids revisited redundant nodes
-        self.size = len(self.state) ** (1 / 2) # matrix size
+        self.goal = goal                        # goal state
+        self.closed = [self.state]              # avoids revisited redundant nodes
+        self.size = len(self.state) ** (1 / 2)  # matrix size
+        self.path = {                           # keeps track of the current path of states and actions/moves
+            "state": [self.state],
+            "move" : [None]
+        }
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
         self.closed = [self.state]
-        self.path = { 'state': [self.state], 'move': [None] }
+        self.path = {
+            "state": [self.state],
+            "move" : [None]
+        }
 
     def expand(self, blank):
         """expands neighbor tiles by removing tiles if the blank is on any border"""
@@ -41,11 +47,11 @@ class Board(State):
         # list of all possible directions
         direction = ["DOWN", "UP", "RIGHT", "LEFT"]
 
-        if blank < self.size:                   # blank is on the top-most border
+        if blank < self.size:  # blank is on the top-most border
             direction.remove("UP")
-        if blank >= self.size ** 2 - self.size: # blank is on the bottom-most border
+        if blank >= self.size ** 2 - self.size:  # blank is on the bottom-most border
             direction.remove("DOWN")
-        if blank % self.size == 0:              # blank is on the left-most border
+        if blank % self.size == 0:  # blank is on the left-most border
             direction.remove("LEFT")
         if blank % self.size == self.size - 1:  # blank is on the right-most border
             direction.remove("RIGHT")
@@ -55,9 +61,11 @@ class Board(State):
 
     def action(self, blank, move):
         """returns the action with respect to the blank tile and the target tile"""
-        dis = move - blank # find distance
-        action = {-self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT"} # convert to string representation
-        return action[dis] # returns the action/move in a string representation
+        # find distance
+        diff = move - blank
+        # convert to string representation
+        action = { -self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT" }
+        return action[diff]  # returns the action/move in a string representation
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
@@ -73,8 +81,8 @@ class Board(State):
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
-        for i, (node, move) in enumerate(zip(self.path['state'], self.path['move'])):
-                print("State: {} Move: {}".format(node, move))
+        for i, (node, move) in enumerate(zip(self.path["state"], self.path["move"])):
+            print("State: {} Move: {}".format(node, move))
 
         print("\nExplored {} States".format(len(self.closed)))
 
@@ -92,10 +100,10 @@ class Board(State):
 
                 # check if the child has already been visited
                 if child not in self.closed:
-                    self.closed.append(child) # child is now visited
+                    self.closed.append(child)  # child is now visited
 
-                    self.path['state'].append(child)
-                    self.path['move'].append(self.action(top.blank, move))
+                    self.path["state"].append(child)
+                    self.path["move"].append(self.action(top.blank, move))
 
                     # recursively search the child state until goal state or exhausted
                     return self.dfs(State(move, child, move))
@@ -122,22 +130,28 @@ class Board(State):
                 # check if the child has already been visited (cycle)
                 # or currently in queue to be explored (redundant-path)
                 if child not in (self.closed or OPEN):
-                    self.closed.append(child) # child is now visited
-                    OPEN.append((State(move, child, move), # keeps track of the current path from root to child state
-                                 spath + [child],
-                                 mpath + [self.action(frontier.blank, move)]))
+                    self.closed.append(child)  # child is now visited
+                    OPEN.append(( # keeps track of the current path from root to child state
+                        State(move, child, move),
+                        spath + [child],
+                        mpath + [self.action(frontier.blank, move)])
+                    )
 
                 if child == self.goal:
-                    self.path = { 'state': spath + [child],
-                                  'move': mpath + [self.action(frontier.blank, move)]}
+                    self.path = {
+                        "state": spath + [child],
+                        "move" : mpath + [self.action(frontier.blank, move)],
+                    }
                     return None
 
             OPEN.pop(0)
 
 
 if __name__ == "__main__":
-    task = [Board(0, [0, 3, 2, 1], [1, 2, 3, 0]),
-            Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0])]
+    task = [
+        Board(0, [0, 3, 2, 1], [1, 2, 3, 0]),
+        Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]),
+    ]
 
     for puzzle in task:
         puzzle.solve()
