@@ -21,11 +21,12 @@ class State:
 class Board(State):
     """State Space Representation"""
 
-    def __init__(self, blank, start=None, goal=None):
+    def __init__(self, blank, start=None, goal=None, table=None):
         State.__init__(self, blank, start)
 
         self.goal = goal                             # goal state
-        self.closed = [self.state]                   # avoids revisited redundant nodes
+        self.closed = [self.state]                   # avoids revisited (cycles)
+        self.table = table                           # set of possible moves
         self.size = int(len(self.state) ** (1 / 2))  # matrix size
         self.path = {                                # keeps track of the current path of states and actions/moves
             "state": [self.state],
@@ -40,35 +41,14 @@ class Board(State):
             "move" : [None]
         }
 
-    def expand(self, blank):
-        """
-        ORIGINAL SOURCE: https://github.com/aimacode/aima-python/blob/master/search.py on line 440
-        expands neighbor tiles by removing tiles if the blank is on any border
-        """
-        # convert to numerical representation
-        action = {"UP": -self.size, "DOWN": self.size, "LEFT": -1, "RIGHT": 1}
-        # list of all possible directions
-        direction = ["DOWN", "UP", "RIGHT", "LEFT"]
-
-        if blank < self.size:  # blank is on the top-most border
-            direction.remove("UP")
-        if blank >= self.size ** 2 - self.size:  # blank is on the bottom-most border
-            direction.remove("DOWN")
-        if blank % self.size == 0:  # blank is on the left-most border
-            direction.remove("LEFT")
-        if blank % self.size == self.size - 1:  # blank is on the right-most border
-            direction.remove("RIGHT")
-
-        # returns the list of valid numerical actions/moves
-        return [blank + action[move] for move in direction]
-
     def action(self, blank, move):
         """returns the action with respect to the blank tile and the target tile"""
         # find distance
         diff = move - blank
         # convert to string representation
         action = { -self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT" }
-        return action[diff]  # returns the action/move in a string representation
+
+        return action[diff] # returns the action/move in a string representation
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
@@ -94,11 +74,11 @@ class Board(State):
 
         # validate if goal state reached
         if top.state != self.goal:
-            for move in self.expand(top.blank):
+            for move in self.table[top.blank]:
                 # gets all possible actions from the current blank tile
                 # swaps a copy of the current blank tile with one of its child tile
                 # original copy is unmodified if backtrack occurs
-                child = list(top.state)
+                child = top.state[:]
                 child[top.blank], child[move] = child[move], child[top.blank]
 
                 # check if the child has already been visited
@@ -118,33 +98,33 @@ class Board(State):
         """breadth-first search implementation"""
 
         # queue data structure
-        OPEN = [self]
+        Open = [self]
         # tuple-list conntaining the current state path and current action/move path
-        MEM = [([self.state], [None])]
+        Mem = [([self.state], [None])]
 
-        while OPEN:
-            frontier = OPEN.pop(0)
-            spath, mpath = MEM[0][0], MEM[0][1]
+        while Open:
+            frontier = Open.pop(0)
+            spath, mpath = Mem[0][0], Mem[0][1]
 
-            for move in self.expand(frontier.blank):
+            for move in self.table[frontier.blank]:
                 # gets all possible actions from the current blank tile
                 # swaps a copy of the current blank tile with one of its child tile
                 # original copy is unmodified for future swappings of the same parent
-                child = list(frontier.state)
+                child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 # check if the child has already been visited (cycle)
                 # or currently in queue to be explored (redundant-path)
-                if child not in self.closed and child not in OPEN:
+                if child not in self.closed and child not in Open:
                     # child is now visited
                     self.closed.append(child)
                     # push child node to explore set
-                    OPEN.append(State(move, child, move))
+                    Open.append(State(move, child, move))
                     # keeps track of the current path from root to child state
-                    MEM.append((
+                    Mem.append((
                         spath + [child],
-                        mpath + [self.action(frontier.blank, move)])
-                    )
+                        mpath + [self.action(frontier.blank, move)]
+                    ))
 
                 if child == self.goal:
                     self.path = {
@@ -153,13 +133,23 @@ class Board(State):
                     }
                     return None
 
-            MEM.pop(0)
+            Mem.pop(0)
 
 
 if __name__ == "__main__":
     task = [
-        Board(0, [0, 3, 2, 1], [1, 2, 3, 0]),
-        Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0]),
+        Board(0, [0, 3, 2, 1], [1, 2, 3, 0], ((1, 2), (0, 3), (3, 0), (2, 1))),
+        Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0], (
+                (1, 3),
+                (0, 2, 4),
+                (1, 5),
+                (0, 4, 6),
+                (1, 3, 5, 7),
+                (2, 4, 8),
+                (3, 7),
+                (4, 6, 8),
+                (5, 7))
+             )
     ]
 
     for puzzle in task:
