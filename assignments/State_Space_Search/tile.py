@@ -15,7 +15,7 @@ class State:
     def __init__(self, blank, state, move=None):
         self.blank = blank  # the blank tile position
         self.state = state  # a list of the current configuration
-
+        self.move = move    # the action to get to current state
 
 class Board(State):
     """State Space Representation"""
@@ -87,7 +87,7 @@ class Board(State):
 
                     # recursively search the child state until goal state or exhausted
                     # keeps a record of the current path (root + sibilings)
-                    return self.dfs(State(move, child, move), path + [child])
+                    return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
 
         return None
 
@@ -113,9 +113,9 @@ class Board(State):
                 # check if the child has already been visited (cycle)
                 # or currently in queue to be explored (redundant-path)
                 if child not in self.closed and child not in open:
-                    self.closed.append(child)             # child is now visited
-                    open.append(State(move, child, move)) # push child node to explore set
-                    mem.append((                          # keeps track of the current path from root to child state
+                    self.closed.append(child)                                          # child is now visited
+                    open.append(State(move, child, self.action(frontier.blank, move))) # push child node to explore set
+                    mem.append((                                                       # keeps track of the current path from root to child state
                         spath + [child],
                         mpath + [self.action(frontier.blank, move)]
                     ))
@@ -136,13 +136,13 @@ if __name__ == "__main__":
         Board(0, [0, 3, 2, 1], [1, 2, 3, 0], ((1, 2), (0, 3), (3, 0), (2, 1))),
         Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0], (
                 (1, 3),
-                (0, 2, 4),
-                (1, 5),
-                (0, 4, 6),
+                (2, 0, 4),
+                (5, 1),
+                (4, 0, 6),
                 (1, 3, 5, 7),
-                (2, 4, 8),
+                (8, 4, 2),
                 (3, 7),
-                (4, 6, 8),
+                (6, 4, 8),
                 (5, 7))
              )
     ]
