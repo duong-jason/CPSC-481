@@ -86,10 +86,11 @@ class Board(State):
                     self.path["move"].append(self.action(frontier.blank, move))
 
                     # recursively search the child state until goal state or exhausted
-                    # keeps a record of the current path (root + sibilings)
+                    # keeps a record of the current path (root + siblings)
                     return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
 
         return None
+
 
     def bfs(self):
         """breadth-first search implementation"""
