@@ -74,38 +74,26 @@ class Board(State):
 
     def dfs(self, frontier, path):
         """depth-first search implementation"""
-
-        open = [self] # queue data structure
-        mem = [([self.state], [None])] # tuple-list conntaining the current state path and current action/move path
-
-        while open:
-            frontier, spath, mpath = open.pop(), mem[-1][0], mem[-1][1]
-
+ 
+        # validate if goal state reached
+        if frontier.state != self.goal:
             for move in self.table[frontier.blank]:
                 # gets all possible actions from the current blank tile
                 # swaps a copy of the current blank tile with one of its child tile
+                # original copy is unmodified if backtrack occurs
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
+                # check if the child has already been visited
+                if child not in self.closed and child not in path:
+                    self.closed.append(child) # child is now visited
+                    self.path["state"].append(child)
+                    self.path["move"].append(self.action(frontier.blank, move))
 
-                # check if the child has already been visited (cycle)
-                # or currently in queue to be explored (redundant-path/back-edge)
-                if child not in self.closed and child not in open:
-                    self.closed.append(child)                                          # child is now visited
-                    open.append(State(move, child, self.action(frontier.blank, move))) # push child node to explore set
-                    mem.append((                                                       # keeps track of the current path from root to child state
-                        spath + [child],
-                        mpath + [self.action(frontier.blank, move)]
-                    ))
+                    # recursively search the child state until goal state or exhausted
+                    # keeps a record of the current path (root + siblings)
+                    return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
 
-                # validates whether the current state has reached its goal state
-                if child == self.goal:
-                    self.path = { # save the direct paths and moves
-                        "state": spath + [child],
-                        "move" : mpath + [self.action(frontier.blank, move)],
-                    }
-                    return None
-
-            mem.pop()
+        return None
 
 
     def bfs(self):
