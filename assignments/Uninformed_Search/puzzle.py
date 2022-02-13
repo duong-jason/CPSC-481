@@ -74,7 +74,7 @@ class Board(State):
 
     def dfs(self, frontier, path):
         """depth-first search implementation"""
- 
+
         # validate if goal state reached
         if frontier.state != self.goal:
             for move in self.table[frontier.blank]:
