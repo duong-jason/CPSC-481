@@ -7,5 +7,5 @@ def dfs(self, frontier, path)
 ```
 
 ## Group Members
-**Names:** Danny Diep, Jason Duong, Joshua Konechy
-**Emails:** danny.963.dk@gmail.com, reddkingdom@csu.fullerton.edu, Jkonechy@live.com
+**Names:** Danny Diep, Jason Duong, Joshua Konechy <br>
+**Emails:** danny.963.dk@gmail.com, reddkingdom@csu.fullerton.edu, Jkonechy@live.com <br>
