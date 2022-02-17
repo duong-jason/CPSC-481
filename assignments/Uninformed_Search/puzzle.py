@@ -8,11 +8,6 @@
 #
 """sliding tile puzzle implementation with DFS and BFS"""
 
-"""
-TODO:
-    fix dfs for 3x3 tile
-    display the state as a square-grid
-"""
 
 class State:
     """State Representation: current configuration of puzzle"""
@@ -29,27 +24,24 @@ class Board(State):
     def __init__(self, blank, start=None, goal=None, table=None):
         State.__init__(self, blank, start)
 
-        self.goal = goal                             # goal state
-        self.closed = [self.state]                   # avoids revisited (cycles)
-        self.table = table                           # set of possible moves
-        self.size = len(self.state) ** (1 / 2)       # matrix size
-        self.path = {                                # keeps track of the current path of states and actions/moves
+        self.goal = goal                        # goal state
+        self.closed = [self.state]              # avoids revisited (cycles)
+        self.table = table                      # set of possible moves
+        self.size = len(self.state) ** (1 / 2)  # matrix size
+        self.path = {                           # keeps track of the current path of states and actions/moves
             "state": [self.state],
-            "move" : [None]
+            "move": [None],
         }
 
     def reset(self):
         """re-initializes the path and closed list from future searches"""
         self.closed = [self.state]
-        self.path = {
-            "state": [self.state],
-            "move" : [None]
-        }
+        self.path = {"state": [self.state], "move": [None]}
 
     def action(self, blank, move):
         """returns the action with respect to the blank tile and the target tile"""
         # map of numerical position to string position
-        action = { -self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT" }
+        action = {-self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT"}
         # returns the action/move in a string representation based on the direction
         return action[move - blank]
 
@@ -80,12 +72,13 @@ class Board(State):
             for move in self.table[frontier.blank]:
                 # gets all possible actions from the current blank tile
                 # swaps a copy of the current blank tile with one of its child tile
-                # original copy is unmodified if backtrack occurs
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
+
                 # check if the child has already been visited
                 if child not in self.closed and child not in path:
                     self.closed.append(child) # child is now visited
+
                     self.path["state"].append(child)
                     self.path["move"].append(self.action(frontier.blank, move))
 
@@ -93,14 +86,11 @@ class Board(State):
                     # keeps a record of the current path (root + siblings)
                     return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
 
-        return None
-
-
     def bfs(self):
         """breadth-first search implementation"""
 
         open = [self] # queue data structure
-        mem = [([self.state], [None])] # tuple-list conntaining the current state path and current action/move path
+        mem = [([self.state], [None])] # tuple-list containing the current state path and current action/move path
 
         while open:
             frontier, spath, mpath = open.pop(0), mem[0][0], mem[0][1]
@@ -111,23 +101,23 @@ class Board(State):
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
-                # check if the child has already been visited (cycle)
-                # or currently in queue to be explored (redundant-path/back-edge)
-                if child not in self.closed and child not in open:
-                    self.closed.append(child)                                          # child is now visited
-                    open.append(State(move, child, self.action(frontier.blank, move))) # push child node to explore set
-                    mem.append((                                                       # keeps track of the current path from root to child state
-                        spath + [child],
-                        mpath + [self.action(frontier.blank, move)]
-                    ))
-
                 # validates whether the current state has reached its goal state
                 if child == self.goal:
                     self.path = { # save the direct paths and moves
                         "state": spath + [child],
-                        "move" : mpath + [self.action(frontier.blank, move)],
+                        "move": mpath + [self.action(frontier.blank, move)],
                     }
                     return None
+
+                # check if the child has already been visited (cycle)
+                # or currently in queue to be explored (redundant-path/back-edge)
+                if child not in self.closed and child not in open:
+                    self.closed.append(child) # child is now visited
+                    open.append(State(move, child, self.action(frontier.blank, move))) # push child node to explore set
+                    mem.append(( # keeps track of the current path from root to child state
+                        spath + [child],
+                        mpath + [self.action(frontier.blank, move)]
+                    ))
 
             mem.pop(0)
 
@@ -144,8 +134,8 @@ if __name__ == "__main__":
                 (8, 4, 2),
                 (3, 7),
                 (6, 4, 8),
-                (5, 7))
-             )
+                (5, 7),
+            ))
     ]
 
     for puzzle in task:
