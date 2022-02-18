@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Danny Diep, Jason Duong, Joshua Konechy
 # CPSC 481-01
-# 2022-02-02
-# @DannyDiep963, @duong-jason, @KonechyJ
+# 2022-02-18
+# @dannydiep963, @duong-jason, @Konechyj
 #
 # Assignment #1 - Sliding Tile Puzzle
 #
@@ -47,8 +47,8 @@ class Board(State):
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
-        print("---\nDFS\n---")
-        self.dfs(State(self.blank, self.state), [self.state])
+        print("---\nIDDFS\n---")
+        self.iddfs()
         self.reconstruct()
 
         self.reset()
@@ -63,6 +63,43 @@ class Board(State):
             print("State: {} Move: {}".format(node, move))
 
         print("\nExplored {} States".format(len(self.closed)))
+
+    def iddfs(self):
+        """iterative deepening depth-first search implementation"""
+        depth = 0
+        while not self.dls(State(self.blank, self.state), [self.state], depth):
+            depth += 1
+            self.reset()
+
+    def dls(self, frontier, path, depth):
+        """depth-limited search implementation"""
+
+        if frontier.state == self.goal: # validate if goal state reached
+            return True
+        if depth < 1: # depth-limit reached
+            return False
+
+        for move in self.table[frontier.blank]:
+            # gets all possible actions from the current blank tile
+            # swaps a copy of the current blank tile with one of its child tile
+            child = frontier.state[:]
+            child[frontier.blank], child[move] = child[move], child[frontier.blank]
+
+            # check if the child has already been visited
+            if child not in self.closed and child not in path:
+                self.closed.append(child) # child is now visited
+
+                self.path["state"].append(child)
+                self.path["move"].append(self.action(frontier.blank, move))
+
+                # recursively search the child state until goal state or exhausted
+                # keeps a record of the current path (root + siblings)
+                # recursion ends when goal state is found; otherwise exhausts all nodes <= depth
+                if self.dls(State(move, child, self.action(frontier.blank, move)), path + [child], depth - 1):
+                    return True
+
+                self.path["state"].pop()
+                self.path["move"].pop()
 
     def dfs(self, frontier, path):
         """depth-first search implementation"""
@@ -85,6 +122,7 @@ class Board(State):
                     # recursively search the child state until goal state or exhausted
                     # keeps a record of the current path (root + siblings)
                     return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
+
 
     def bfs(self):
         """breadth-first search implementation"""
