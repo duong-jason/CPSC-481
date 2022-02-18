@@ -2,7 +2,7 @@
 
 # Issues
 ```python
-# the dfs function seems to stop processing due to the stack recursion limit
+# the dfs function for the 3x3 puzzle seems to stop processing due to the stack recursion limit
 def dfs(self, frontier, path)
 ```
 

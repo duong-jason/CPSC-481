@@ -47,14 +47,20 @@ class Board(State):
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
-        print("---\nIDDFS\n---")
-        self.iddfs()
-        self.reconstruct()
+        s = int(self.size)
 
+        print("---\n{}x{} -> DFS\n---".format(s, s))
+        self.dfs(State(self.blank, self.state), [self.state])
+        self.reconstruct()
         self.reset()
 
-        print("---\nBFS\n---")
+        print("---\n{}x{} -> BFS\n---".format(s, s))
         self.bfs()
+        self.reconstruct()
+        self.reset()
+
+        print("---\n{}x{} -> IDDFS\n---".format(s, s))
+        self.iddfs()
         self.reconstruct()
 
     def reconstruct(self):
