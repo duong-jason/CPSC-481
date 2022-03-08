@@ -74,6 +74,7 @@ class Board(State):
         """iterative deepening depth-first search implementation"""
         depth = 0
         while not self.dls(State(self.blank, self.state), [self.state], depth):
+            print(depth)
             depth += 1
             self.reset()
 
