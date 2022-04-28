@@ -6,21 +6,29 @@ parent(bob, pat).
 parent(pat, jim).
 
 % Prove Fact
-%   ?- parent(bob, pat) -> True
-%   ?- parent(liz, pat) -> False
-%   ?- parent(tom, ben) -> False 
+%   ?- parent(bob, pat). -> True
+%   ?- parent(liz, pat). -> False
+%   ?- parent(tom, ben). -> False 
 
 % Get All Pairs
-%   parent(X, Y)
+%   ?- parent(X, Y).
+%		X = pam, Y = bob
+%		X = tom, Y = bob
+%		X = tom, Y = liz
+%		X = bob, Y = ann
+%		X = bob, Y = pat
+%		X = pat, Y = jim
 
 % Get Parent/Children/Grandparent/Grandchildren
-%   parent(X, liz) -> tom
-%   parent(bob, X) -> ann, pat
-%   parent(Y, jim), parent(X, Y) -> X=bob, Y=pat
-%   parent(tom, X), parent(X, Y) -> X=bob, Y=ann | X=bob, Y=pat
+%   parent(X, liz). -> X = tom
+%   parent(bob, X). -> X = ann, X = pat
+%   parent(Y, jim), parent(X, Y). -> X = bob, Y = pat
+%   parent(tom, X), parent(X, Y).
+%   	X = bob, Y = ann
+%   	X = bob, Y = pat
 
 % Common Parent
-%   parent(X, ann), parent(X, pat) -> bob
+%   parent(X, ann), parent(X, pat) -> X = bob
 
 female(pam).
 female(liz).
