@@ -1,17 +1,3 @@
-% Lecture_1
-
-% Clause/Fact :- <Predicate>(<Atoms>).
-
-% Rule :- <Conclusion> :- <Condition>.
-% Conclusion :- <Predicate>(Variable)
-% Condition :- <Predicate>(Variable)
-%           |  <Predicate>(Variable), <Condition>
-
-% Atoms :- <Value>
-% Variables :- <Capital>
-%           | _<Capital>
-
-
 parent(pam, bob).
 parent(tom, bob).
 parent(tom, liz).
