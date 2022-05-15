@@ -9,168 +9,114 @@
 """sliding tile puzzle implementation with DFS and BFS"""
 
 
-class State:
-    """State Representation: current configuration of puzzle"""
-
-    def __init__(self, blank, state, move=None):
-        self.blank = blank  # the blank tile position
-        self.state = state  # a list of the current configuration
-        self.move = move    # the action to get to current state
+import math
+from collections import namedtuple
 
 
-class Board(State):
+Board = namedtuple("Board", ["state", "blank", "move"])
+
+
+class Puzzle:
     """State Space Representation"""
 
     def __init__(self, blank, start=None, goal=None, table=None):
-        State.__init__(self, blank, start)
+        self._state = Board(start, blank, None)
 
-        self.goal = goal                        # goal state
-        self.closed = [self.state]              # avoids revisited (cycles)
-        self.table = table                      # set of possible moves
-        self.size = len(self.state) ** (1 / 2)  # matrix size
-        self.path = {                           # keeps track of the current path of states and actions/moves
-            "state": [self.state],
-            "move": [None],
-        }
-
-    def reset(self):
-        """re-initializes the path and closed list from future searches"""
-        self.closed = [self.state]
-        self.path = {"state": [self.state], "move": [None]}
-
-    def action(self, blank, move):
-        """returns the action with respect to the blank tile and the target tile"""
-        # map of numerical position to string position
-        action = {-self.size: "UP", self.size: "DOWN", -1: "LEFT", 1: "RIGHT"}
-        # returns the action/move in a string representation based on the direction
-        return action[move - blank]
+        self._goal = goal # goal state
+        self._table = table # set of possible moves
+        self._closed = [self._state] # avoids revisited (cycles)
+        self._path = [self._state] # avoids revisited (cycles)
+        self._size = math.isqrt(len(start)) # matrix size
+        self._path = [self._state] # keeps track of the current path of states
+        self._action = {-self._size: "UP", self._size: "DOWN", -1: "LEFT", 1: "RIGHT"}
 
     def solve(self):
         """generates search algorithms to solve the tile puzzle"""
-        s = int(self.size)
-
-        print("---\n{}x{} -> DFS\n---".format(s, s))
-        self.dfs(State(self.blank, self.state), [self.state])
-        self.reconstruct()
-        self.reset()
-
-        print("---\n{}x{} -> BFS\n---".format(s, s))
-        self.bfs()
-        self.reconstruct()
-        self.reset()
-
-        print("---\n{}x{} -> IDDFS\n---".format(s, s))
+        print(f"---\n{self._size}x{self._size} -> IDDFS\n---")
         self.iddfs()
+        self.reconstruct()
+
+        print(f"---\n{self._size}x{self._size} -> BFS\n---")
+        self.bfs(self._closed)
         self.reconstruct()
 
     def reconstruct(self):
         """outputs the states and path needed to solve"""
-        for i, (node, move) in enumerate(zip(self.path["state"], self.path["move"])):
-            print("State: {} Move: {}".format(node, move))
-
-        print("\nExplored {} States".format(len(self.closed)))
+        for node in self._path:
+            print(f"State: {node.state} Move: {node.move}")
+        print(f"\nExplored {len(self._closed)} States")
 
     def iddfs(self):
         """iterative deepening depth-first search implementation"""
         depth = 0
-        while not self.dls(State(self.blank, self.state), [self.state], depth):
-            print(depth)
-            depth += 1
-            self.reset()
+        while not self.dls(self._state, self._path, self._closed, depth := depth + 1):
+            self._closed = [self._state]
+            self._path = [self._state]
 
-    def dls(self, frontier, path, depth):
+    def dls(self, frontier, path, closed, depth):
         """depth-limited search implementation"""
 
-        if frontier.state == self.goal: # validate if goal state reached
+        if frontier.state == self._goal: # validate if goal state reached
             return True
         if depth < 1: # depth-limit reached
             return False
 
-        for move in self.table[frontier.blank]:
+        for move in self._table[frontier.blank]:
             # gets all possible actions from the current blank tile
             # swaps a copy of the current blank tile with one of its child tile
             child = frontier.state[:]
             child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
             # check if the child has already been visited
-            if child not in self.closed and child not in path:
-                self.closed.append(child) # child is now visited
-
-                self.path["state"].append(child)
-                self.path["move"].append(self.action(frontier.blank, move))
+            if child not in closed and child not in path:
+                self._closed.append(child) # child is now visited
+                self._path.append(Board(child, frontier.blank, self._action[move - frontier.blank]))
 
                 # recursively search the child state until goal state or exhausted
                 # keeps a record of the current path (root + siblings)
                 # recursion ends when goal state is found; otherwise exhausts all nodes <= depth
-                if self.dls(State(move, child, self.action(frontier.blank, move)), path + [child], depth - 1):
+                if self.dls(
+                    Board(child, move, self._action[move - frontier.blank]),
+                    path + [Board(child, frontier.blank, frontier.move)],
+                    closed + [child],
+                    depth - 1
+                ):
                     return True
 
-                self.path["state"].pop()
-                self.path["move"].pop()
+                self._path.pop()
 
-    def dfs(self, frontier, path):
-        """depth-first search implementation"""
-
-        # validate if goal state reached
-        if frontier.state != self.goal:
-            for move in self.table[frontier.blank]:
-                # gets all possible actions from the current blank tile
-                # swaps a copy of the current blank tile with one of its child tile
-                child = frontier.state[:]
-                child[frontier.blank], child[move] = child[move], child[frontier.blank]
-
-                # check if the child has already been visited
-                if child not in self.closed and child not in path:
-                    self.closed.append(child) # child is now visited
-
-                    self.path["state"].append(child)
-                    self.path["move"].append(self.action(frontier.blank, move))
-
-                    # recursively search the child state until goal state or exhausted
-                    # keeps a record of the current path (root + siblings)
-                    return self.dfs(State(move, child, self.action(frontier.blank, move)), path + [child])
-
-
-    def bfs(self):
+    def bfs(self, closed):
         """breadth-first search implementation"""
 
-        open = [self] # queue data structure
-        mem = [([self.state], [None])] # tuple-list containing the current state path and current action/move path
+        open = [self._state] # queue data structure
+        history = [[self._state]] # tuple-list containing the current state path and current action/move path
 
         while open:
-            frontier, spath, mpath = open.pop(0), mem[0][0], mem[0][1]
+            frontier, path = open.pop(0), history.pop(0)
 
-            for move in self.table[frontier.blank]:
+            for move in self._table[frontier.blank]:
                 # gets all possible actions from the current blank tile
                 # swaps a copy of the current blank tile with one of its child tile
                 child = frontier.state[:]
                 child[frontier.blank], child[move] = child[move], child[frontier.blank]
 
                 # validates whether the current state has reached its goal state
-                if child == self.goal:
-                    self.path = { # save the direct paths and moves
-                        "state": spath + [child],
-                        "move": mpath + [self.action(frontier.blank, move)],
-                    }
-                    return None
+                if child == self._goal:
+                    self._path = path + [child] # save the direct paths and moves
+                    return
 
                 # check if the child has already been visited (cycle)
                 # or currently in queue to be explored (redundant-path/back-edge)
-                if child not in self.closed and child not in open:
-                    self.closed.append(child) # child is now visited
-                    open.append(State(move, child, self.action(frontier.blank, move))) # push child node to explore set
-                    mem.append(( # keeps track of the current path from root to child state
-                        spath + [child],
-                        mpath + [self.action(frontier.blank, move)]
-                    ))
-
-            mem.pop(0)
+                if child not in closed and child not in open:
+                    self._closed.append(child) # child is now visited
+                    open.append(Board(child, frontier.blank, self._action[move - frontier.blank])) # push child node to explored set
+                    history.append(path + [child]) # keeps track of the current path from root to child state
 
 
 if __name__ == "__main__":
     task = [
-        Board(0, [0, 3, 2, 1], [1, 2, 3, 0], [[1, 2], [0, 3], [3, 0], [2, 1]]),
-        Board(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0], (
+        Puzzle(0, [0, 3, 2, 1], [1, 2, 3, 0], [[1, 2], [0, 3], [3, 0], [2, 1]]),
+        Puzzle(4, [1, 4, 3, 7, 0, 6, 5, 8, 2], [1, 2, 3, 4, 5, 6, 7, 8, 0], (
                 (1, 3),
                 (2, 0, 4),
                 (5, 1),
